@@ -1,64 +1,80 @@
-import { useState } from 'react';
-import './App.css';
+import { useState, useEffect } from 'react';
+import Navbar from './components/Navbar';
+import Button from './components/Button';
+import TaskList from './components/TaskList';
+import TaskForm from './components/TaskForm';
+import './index.css';
 
-// Import your components here
-// import Button from './components/Button';
-// import Navbar from './components/Navbar';
-// import Footer from './components/Footer';
-// import TaskManager from './components/TaskManager';
+// Load tasks from localStorage
+const getStoredTasks = () => {
+  const stored = localStorage.getItem('tasks');
+  return stored ? JSON.parse(stored) : [];
+};
 
 function App() {
-  const [count, setCount] = useState(0);
+  const [tasks, setTasks] = useState(getStoredTasks());
+  const [count, setCount] = useState(tasks.length);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Save tasks to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+    setCount(tasks.length);
+  }, [tasks]);
+
+  // Toggle dark mode class on <html>
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (isDarkMode) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+
+  const addTask = (task) => {
+    setTasks([...tasks, task]);
+  };
+
+  const deleteTask = (indexToDelete) => {
+    const updatedTasks = tasks.filter((_, index) => index !== indexToDelete);
+    setTasks(updatedTasks);
+  };
+
+  const editTask = (indexToEdit, updatedTask) => {
+    const updatedTasks = tasks.map((task, index) =>
+      index === indexToEdit ? updatedTask : task
+    );
+    setTasks(updatedTasks);
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-      {/* Navbar component will go here */}
-      <header className="bg-white dark:bg-gray-800 shadow">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold">PLP Task Manager</h1>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex flex-col">
+      <Navbar />
 
-      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg p-6">
-          <div className="flex flex-col items-center justify-center">
-            <p className="text-lg mb-4">
-              Edit <code className="font-mono bg-gray-200 dark:bg-gray-700 p-1 rounded">src/App.jsx</code> and save to test HMR
-            </p>
-            
-            <div className="flex items-center gap-4 my-4">
-              <button
-                onClick={() => setCount((count) => count - 1)}
-                className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-              >
-                -
-              </button>
-              <span className="text-xl font-bold">{count}</span>
-              <button
-                onClick={() => setCount((count) => count + 1)}
-                className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
-              >
-                +
-              </button>
-            </div>
+      <main className="flex-grow max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center mb-4">
+          <p className="text-lg">Welcome to your React + Tailwind app!</p>
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className="bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-100 px-4 py-2 rounded"
+          >
+            Toggle {isDarkMode ? 'Light' : 'Dark'} Mode
+          </button>
+        </div>
 
-            <p className="text-gray-500 dark:text-gray-400 mt-4">
-              Implement your TaskManager component here
-            </p>
-          </div>
-        </div>
-        
-        {/* API data display will go here */}
-        <div className="mt-8 bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg p-6">
-          <h2 className="text-2xl font-bold mb-4">API Data</h2>
-          <p className="text-gray-500 dark:text-gray-400">
-            Fetch and display data from an API here
-          </p>
-        </div>
+        <Button onClick={() => alert('Button clicked!')}>Click Me</Button>
+        <p className="mt-4">You’ve added {count} task{count !== 1 ? 's' : ''}.</p>
+
+        <TaskForm onAddTask={addTask} />
+        <TaskList
+          tasks={tasks}
+          onDeleteTask={deleteTask}
+          onEditTask={editTask}
+        />
       </main>
 
-      {/* Footer component will go here */}
-      <footer className="bg-white dark:bg-gray-800 shadow mt-auto">
+      <footer className="bg-white dark:bg-gray-800 shadow">
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
           <p className="text-center text-gray-500 dark:text-gray-400">
             © {new Date().getFullYear()} PLP Task Manager. All rights reserved.
@@ -69,4 +85,4 @@ function App() {
   );
 }
 
-export default App; 
+export default App;
